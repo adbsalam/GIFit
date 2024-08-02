@@ -6,7 +6,7 @@ This script converts video files (`.mp4` or `.mov`) into GIFs.
 
 ### Basic Syntax
 
-`./script.sh /path/to/file.mp4 [fps] [width]`
+`bash /location/to/adb_gifit /path/to/file.mp4 [fps] [width]`
 
 ### Parameters
 
@@ -19,19 +19,19 @@ This script converts video files (`.mp4` or `.mov`) into GIFs.
 - **Convert a `.mp4` file with default settings (5 fps, 300 width):**
 
 ```bash
-./script.sh /path/to/file.mp4
+bash /location/to/adb_gifit /path/to/file.mp4
 ```
 
 - **Convert a `.mov` file with custom settings (10 fps, 640 width):**
 
 ```bash
-./script.sh /path/to/file.mov 10 640
+bash /location/to/adb_gifit /path/to/file.mov 10 640
 ```
 
 - **Convert a `.mp4` file with a custom frame rate (15 fps) (width will be set to default 300):**
 
 ```bash
-./script.sh /path/to/file.mp4 15
+bash /location/to/adb_gifit /path/to/file.mp4 15
 ```
 
 ## Notes
