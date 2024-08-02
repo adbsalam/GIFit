@@ -1,0 +1,57 @@
+#!/bin/zsh
+
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+if ! command_exists brew; then
+    echo "Homebrew is not installed. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+    echo "Homebrew check complete"
+fi
+
+if ! command_exists ffmpeg; then
+    echo "ffmpeg is not installed. Installing ffmpeg..."
+    brew install ffmpeg
+else
+    echo "ffmpeg check complete"
+fi
+
+if ! command_exists convert; then
+    echo "ImageMagick is not installed. Installing ImageMagick..."
+    brew install imagemagick
+else
+    echo "ImageMagick check complete"
+fi
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 /path/to/file.mov fps"
+    exit 1
+fi
+
+FILE_PATH="$1"
+FPS="$2"
+DIRECTORY=$(dirname "$FILE_PATH")
+FILE_NAME=$(basename "$FILE_PATH" .mov)
+
+if ! [[ "$FPS" =~ ^[0-9]+$ ]]; then
+    echo "Invalid fps value. Please provide a positive integer."
+    exit 1
+fi
+
+echo "Converting .mov file to frames..."
+ffmpeg -i "$FILE_PATH" -vf "fps=$FPS,scale=320:-1:flags=lanczos" "$DIRECTORY/frame_%04d.png"
+
+echo "Converting frames to GIF..."
+convert -delay $((100 / $FPS)) -loop 0 "$DIRECTORY/frame_*.png" "$DIRECTORY/${FILE_NAME}.gif"
+
+delay 1000
+if ls "$DIRECTORY"/frame_*.png 1> /dev/null 2>&1; then
+    echo "Cleaning up intermediate frames..."
+    rm "$DIRECTORY"/frame_*.png
+else
+    echo "No intermediate frames to clean up."
+fi
+
+echo "Conversion complete. GIF saved as $DIRECTORY/${FILE_NAME}.gif"
