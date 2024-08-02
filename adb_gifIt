@@ -19,29 +19,44 @@ else
 fi
 
 if ! command_exists convert; then
-    echo "ImageMagick is not installed. Installing ImageMagick..."
+    echo "imageMagick is not installed. Installing ImageMagick..."
     brew install imagemagick
 else
     echo "ImageMagick check complete"
 fi
 
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 /path/to/file.mov fps"
+if [ "$#" -lt 1 ] || [ "$#" -gt 3 ]; then
+    echo "Usage: $0 /path/to/file.mp4 [fps] [width]"
     exit 1
 fi
 
 FILE_PATH="$1"
-FPS="$2"
+FPS="${2:-5}"  # Default to 5 fps if not provided
+WIDTH="${3:-300}"  # Default to 300 width if not provided
 DIRECTORY=$(dirname "$FILE_PATH")
-FILE_NAME=$(basename "$FILE_PATH" .mov)
+FILE_NAME=$(basename "$FILE_PATH")
+FILE_EXTENSION="${FILE_NAME##*.}"
+FILE_NAME="${FILE_NAME%.*}"
 
-if ! [[ "$FPS" =~ ^[0-9]+$ ]]; then
+if [[ "$FILE_EXTENSION" != "mp4" && "$FILE_EXTENSION" != "mov" ]]; then
+    echo "Invalid file type. Please provide a .mp4 or .mov file."
+    exit 1
+fi
+
+if ! [[ "$FPS" =~ ^[0-9]+$ ]] || (( FPS <= 0 )); then
     echo "Invalid fps value. Please provide a positive integer."
     exit 1
 fi
 
-echo "Converting .mov file to frames..."
-ffmpeg -i "$FILE_PATH" -vf "fps=$FPS,scale=320:-1:flags=lanczos" "$DIRECTORY/frame_%04d.png"
+if ! [[ "$WIDTH" =~ ^[0-9]+$ ]] || (( WIDTH <= 0 )); then
+    echo "Invalid width value. Please provide a positive integer."
+    exit 1
+fi
+
+SCALE_STR="scale=${WIDTH}:-1:flags=lanczos"
+
+echo "Converting $FILE_EXTENSION file to frames..."
+ffmpeg -i "$FILE_PATH" -vf "fps=$FPS,$SCALE_STR" "$DIRECTORY/frame_%04d.png"
 
 echo "Converting frames to GIF..."
 convert -delay $((100 / $FPS)) -loop 0 "$DIRECTORY/frame_*.png" "$DIRECTORY/${FILE_NAME}.gif"
